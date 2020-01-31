@@ -5,3 +5,6 @@
  * */
 class Account {
 }
+
+Account.HOST = Entity.HOST;
+Account.URL = '/account';

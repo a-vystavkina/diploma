@@ -5,3 +5,6 @@
  * */
 class Transaction {
 }
+
+Transaction.HOST = 'https://bhj-diplom.letsdocode.ru/user/';
+Transaction.URL = '/transaction';

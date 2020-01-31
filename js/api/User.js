@@ -10,7 +10,7 @@ class User {
    * локальном хранилище.
    * */
   static setCurrent(user) {
-
+    localStorage.setItem('user', JSON.stringify(user));
   }
 
   /**
@@ -18,7 +18,9 @@ class User {
    * пользователе из локального хранилища.
    * */
   static unsetCurrent() {
-
+    if(localStorage.getItem('user')) {
+      localStorage.removeItem('user');
+    }
   }
 
   /**
@@ -26,7 +28,7 @@ class User {
    * из локального хранилища
    * */
   static current() {
-
+    return JSON.parse(localStorage.getItem('user'));
   }
 
   /**
@@ -34,7 +36,19 @@ class User {
    * авторизованном пользователе.
    * */
   static fetch( data, callback = f => f ) {
-
+    if (data) {
+      let url = this.URL + '/current';
+      const xhr = createRequest(Object.assign({url: this.HOST + url, method: 'GET'}, {data}), (err, data) => {
+        if(!err) {
+          if(data.success) {
+            this.setCurrent({id: data.user.id, name: data.user.name, email: data.user.email});
+          } else {
+            this.unsetCurrent();
+          }
+        }
+        callback(err, data);
+      });
+    }
   }
 
   /**
@@ -44,7 +58,17 @@ class User {
    * User.setCurrent.
    * */
   static login( data, callback = f => f ) {
-
+    let url = this.URL + '/login';
+    const xhr = createRequest(Object.assign({url: this.HOST + url, method: 'POST'}, data), (err, data) => {
+      
+      if(!err) {
+        
+        if(data.success) {
+          this.setCurrent({id: data.user.id, name: data.user.name, email: data.user.email});
+        }
+      }
+      callback(err, data);
+    });
   }
 
   /**
@@ -54,7 +78,17 @@ class User {
    * User.setCurrent.
    * */
   static register( data, callback = f => f ) {
+    let url = this.URL + '/register';
+    const xhr = createRequest(Object.assign({url: this.HOST + url, method: 'POST'}, data), (err, data) => {
 
+      if(!err) {
+
+        if(data.success) {
+          this.setCurrent({id: data.user.id, name: data.user.name, email: data.user.email});
+        }
+      }
+      callback(err, data);
+    });
   }
 
   /**
@@ -62,6 +96,19 @@ class User {
    * выхода необходимо вызвать метод User.unsetCurrent
    * */
   static logout( data, callback = f => f ) {
+  let url = this.URL + '/logout';
+    const xhr = createRequest(Object.assign({url: this.HOST + url, method: 'POST'}, data), (err, data) => {
 
+      if(!err) {
+        if(data.success) {
+          this.unsetCurrent();
+          App.setState('init');
+        }
+      }
+      callback(err, data);
+    });
   }
 }
+
+User.HOST = Entity.HOST;
+User.URL = '/user';
