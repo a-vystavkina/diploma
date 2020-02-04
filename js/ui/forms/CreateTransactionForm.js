@@ -3,7 +3,7 @@
  * создания новой транзакции
  * Наследуется от AsyncForm
  * */
-class CreateTransactionForm {
+class CreateTransactionForm extends AsyncForm {
   /**
    * Вызывает родительский конструктор и
    * метод renderAccountsList
@@ -20,7 +20,7 @@ class CreateTransactionForm {
    * */
   renderAccountsList() {
     let elSelect = this.element.querySelector('.accounts-select');
-    let elOPtions;
+    let elementOptions;
 
     if (User.current()) {
       Account.list(User.current(), (err, data) => {
@@ -29,11 +29,11 @@ class CreateTransactionForm {
 
           for (let i = 0; i < data.data.length; i++) {
             let datItem = data.data[i];
-            elOPtions += `
+            elementOptions += `
               <option value="${datItem.id}">${datItem.name}</option>
             `;
           }
-          elSelect.innerHTML = elOPtions;
+          elSelect.innerHTML = elementOptions;
         }
       });
     }
@@ -53,8 +53,8 @@ class CreateTransactionForm {
 
         let modal = new Modal(this.element.closest('.modal'));
         modal.close();
-
         App.update();
+        
       } else {
         alert(response.error);
         return;

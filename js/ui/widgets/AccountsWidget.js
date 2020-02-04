@@ -31,19 +31,13 @@ class AccountsWidget {
    * вызывает AccountsWidget.onSelectAccount()
    * */
   registerEvents() {
-    this.element.querySelector('.create-account')
-    .addEventListener('click', (event) => {
-      event.preventDefault();
-      App.getModal('createAccount').open();
+    document.querySelector('.remove-account').addEventListener('click', event => {
+      TransactionsPage.removeAccount();
     });
-    
-    let elAccounts = this.element.querySelectorAll('.account');
-    for (let i = 0; i < elAccounts.length; i++) {
-      elAccounts[i].addEventListener('click', (event) => {
-        event.preventDefault();
-        this.onSelectAccount(event.target);
-      });
-    }
+
+    document.querySelector('.transaction__remove').addEventListener('click', event => {
+      TransactionsPage.removeTransaction(this.element.dataset.id);
+    });
   }
 
   /**
@@ -59,7 +53,6 @@ class AccountsWidget {
   update() {
     if (User.current()) {
       Account.list(User.current(), (err, data) => {
-
         if (data.success) {
           this.clear();
           for (let i = 0; i < data.data.length; i++) {

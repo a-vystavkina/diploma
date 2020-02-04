@@ -198,7 +198,7 @@ class App {
   }
 
   static updateForms() {
-    this.getForm( 'createIncome' ).renderAccountsList();
-    this.getForm( 'createExpense' ).renderAccountsList();
+    this.getForm( 'createIncome' ).update();
+    this.getForm( 'createExpense' ).update();
   }
 }
