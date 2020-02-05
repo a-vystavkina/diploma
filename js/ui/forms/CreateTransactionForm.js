@@ -20,7 +20,7 @@ class CreateTransactionForm extends AsyncForm {
    * */
   renderAccountsList() {
     let elSelect = this.element.querySelector('.accounts-select');
-    let elementOptions;
+    let elOPtions;
 
     if (User.current()) {
       Account.list(User.current(), (err, data) => {
@@ -29,11 +29,11 @@ class CreateTransactionForm extends AsyncForm {
 
           for (let i = 0; i < data.data.length; i++) {
             let datItem = data.data[i];
-            elementOptions += `
+            elOPtions += `
               <option value="${datItem.id}">${datItem.name}</option>
             `;
           }
-          elSelect.innerHTML = elementOptions;
+          elSelect.innerHTML = elOPtions;
         }
       });
     }
@@ -53,8 +53,8 @@ class CreateTransactionForm extends AsyncForm {
 
         let modal = new Modal(this.element.closest('.modal'));
         modal.close();
+
         App.update();
-        
       } else {
         alert(response.error);
         return;

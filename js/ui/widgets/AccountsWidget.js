@@ -13,13 +13,13 @@ class AccountsWidget {
    * необходимо выкинуть ошибку.
    * */
   constructor( element ) {
-    if(!element) {
-      throw new Error('Передан пустой элемент');
-    } else {
+    if (element) {
       this.element = element;
+      this.currentAccountId = null;
       this.registerEvents();
       this.update();
-      this.currentAccountId = null;  
+    } else {
+      throw new Error( 'Элемент не существует' );
     }
   }
 
@@ -31,12 +31,17 @@ class AccountsWidget {
    * вызывает AccountsWidget.onSelectAccount()
    * */
   registerEvents() {
-    document.querySelector('.remove-account').addEventListener('click', event => {
-      TransactionsPage.removeAccount();
-    });
-
-    document.querySelector('.transaction__remove').addEventListener('click', event => {
-      TransactionsPage.removeTransaction(this.element.dataset.id);
+    this.element.addEventListener('click', e => {
+      e.preventDefault();
+      const createAccount = e.target.closest('.create-account');
+      if (createAccount) {
+        const modal = App.getModal('createAccount');
+        return modal.open();
+      }
+      const selectedAccount = e.target.closest('.account');
+      if (selectedAccount) {
+        this.onSelectAccount(selectedAccount);
+      }
     });
   }
 
@@ -52,14 +57,18 @@ class AccountsWidget {
    * */
   update() {
     if (User.current()) {
-      Account.list(User.current(), (err, data) => {
-        if (data.success) {
-          this.clear();
-          for (let i = 0; i < data.data.length; i++) {
-            this.renderItem(data.data[i]);
-          }
+      Account.list({}, (err, response) => {
+        if (err) {
+          return;
         }
+        if (!response.data) {
+          return;
+        }
+        this.clear();
+        this.render(response.data);
       });
+    }else {
+      return;
     }
   }
 
@@ -69,10 +78,8 @@ class AccountsWidget {
    * в боковой колонке
    * */
   clear() {
-    let elAccounts = document.querySelectorAll('.account');
-    for (let i = 0; i < elAccounts.length; i++) {
-      elAccounts[i].outerHTML = '';
-    }
+    const arrToDelete = this.element.querySelectorAll( '.account' );
+    arrToDelete.forEach( item => item.remove());
   }
 
   /**
@@ -83,13 +90,21 @@ class AccountsWidget {
    * Вызывает App.showPage( 'transactions', { account_id: id_счёта });
    * */
   onSelectAccount( element ) {
-    if (document.querySelector('.active.account')) {
-      document.querySelector('.active.account').classList.remove('active');
+    if (this.currentAccountId) {
+      const account = this.element.querySelector(`.account[data-id="${this.currentAccountId}"]`);
+      if (account) {
+        account.classList.remove('active');
+      }
+      else {
+        this.currentAccountId = null;
+      }
     }
-    
-    element.closest('.account').classList.add('active');
-    this.currentAccountId = element.closest('.account').dataset.id;
-    App.showPage('transactions', {account_id: this.currentAccountId});
+    element.classList.add('active');
+    const {id} = element.dataset;
+    this.currentAccountId = id;
+    App.showPage('transactions', {
+      account_id: id
+    });
   }
 
   /**
@@ -98,21 +113,13 @@ class AccountsWidget {
    * item - объект с данными о счёте
    * */
   getAccountHTML( item ) {
-    let elementAccount = document.createElement('li');
-    elementAccount.className = 'account';
-    elementAccount.dataset.id = item.id;
-    elementAccount.innerHTML = `
-      <a href = "#">
-        <span>${item.name}</span>
-        <span>${item.sum} ₽</span>
-      </a>`;
-      
-    elementAccount.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.onSelectAccount(event.target);
-    });
-
-    return elementAccount;
+    return `
+      <li class="account" data-id="${item.id}">
+          <a href="#">
+              ${item.name} / ${item.sum} ₽
+          </a>
+      </li>
+    `;
   }
 
   /**
@@ -122,6 +129,12 @@ class AccountsWidget {
    * и добавляет его внутрь элемента виджета
    * */
   renderItem( item ) {
-    this.element.insertAdjacentElement('beforeEnd', this.getAccountHTML(item));
+    const {name, id} = item,
+      sum = item.sum.toLocaleString('en'),
+      html = this.getAccountHTML({
+        name, id, sum
+      });
+    this.element.insertAdjacentHTML('beforeend', html);
   }
+  
 }

@@ -112,18 +112,17 @@ class TransactionsPage {
    * Устанавливает заголовок: «Название счёта»
    * */
   clear() {
-    document.querySelector('.content').innerHTML = '';
-    this.renderTransactions();
+    this.renderTransactions([]);
     this.renderTitle('Название счёта');
-    this.lastOptions = '';
+    this.lastOptions = null;
   } 
 
   /**
    * Устанавливает заголовок в элемент .content-title
    * */
   renderTitle( name ) {
-    let elContentTitle = document.querySelector('.content-title');
-    elContentTitle.textContent = name;
+    this.element.querySelector('.content-title').textContent = name;
+    //this.element.querySelector('.content-title');
   }
 
   /**
@@ -189,14 +188,8 @@ class TransactionsPage {
    * используя getTransactionHTML
    * */
   renderTransactions( data ) {
-    let elContent = document.querySelector('.content');
-
-    if (data) {
-      for (let i = 0; i < data.length; i++) {
-        elContent.insertAdjacentElement('beforeEnd', this.getTransactionHTML(data[i]));
-      }
-    } else {
-      elContent.innerHTML = '';
-    }
+    const container = document.querySelector( '.content' );
+    const itemsHTML = data.reverse().map( this.getTransactionHTML.bind( this )).join( '' );
+    container.innerHTML = `<div class="transactions-content">${itemsHTML}</div>`;
   }
 }

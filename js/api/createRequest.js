@@ -2,50 +2,63 @@
  * Основная функция для совершения запросов
  * на сервер.
  * */
-const createRequest = (options = {}, callback) => {
-  let xhr = new XMLHttpRequest;
-  let method = options.method;
-  let url;
-  let formData;
+const createRequest = (options = {}) => {
+  const f = function () {},
+    { method = 'GET',
+      headers = {},
+      success = f,
+      error = f,
+      callback = f,
+      responseType,
+      async = true,
+      data = {}} = options,
+    xhr = new XMLHttpRequest;
+
+  let {url} = options;
+
+  if (responseType) {
+    xhr.responseType = responseType;
+  }
+
+  xhr.onload = function() {
+    success.call(this, xhr.response);
+    callback.call(this, null, xhr.response);
+  };
+  xhr.onerror = function() {
+    console.log('!!!');
+    const err = new Error('Request Error');
+    error.call(this, err);
+    callback.call(this, err);
+  };
+
+  xhr.withCredentials = true;
+
+  let requestData;
 
   if (method === 'GET') {
-    if(options.data) {
-      let urlOption = Object.entries(options.data)
-      .map(([key, value]) => `${key}=${value}`)
+    const urlParams = Object.entries( data )
+      .map(([key, value]) => `${key}=${value}` )
       .join('&');
-      url = `${options.url}?${urlOption}`;
+    if (urlParams) {
+      url += '?' + urlParams;
     }
-  }else {
-  	formData = new FormData();
-	url = options.url;
-	for (let item in options.data) {
-	  formData.append(item, options.data[item]);
-	}
   }
-
-  xhr.addEventListener('readystatechange', function () {
-	if(this.readyState == xhr.DONE) {
-	  if (this.status == 200) {
-	    callback(null, JSON.parse(this.responseText));
-	  }else {
-		callback(this.responseType, null);
-	  }
-	}
-  });
-
+  else {
+    requestData = Object.entries(data)
+      .reduce(( target, [key, value]) => {
+        target.append(key, value);
+        return target;
+      }, new FormData);
+  }
   try {
-    xhr.withCredentials = true;
-	xhr.open(method, url);
-
-	if (formData != undefined) {
-	  xhr.send(formData);
-	}else {
-	  xhr.send();
-	}		
+    xhr.open(method, url);
+    xhr.send(requestData);
   }
-  catch (e) {
-    console.log(e);
-	callback(e);
+  catch ( err ) {
+    error.call(this, err);
+    callback.call(this, err);
+    return xhr;
   }
-};
 
+  return xhr;
+  };
